@@ -17,7 +17,7 @@ const authenticator = new AuthenticatorBuilder()
     .withStartStep({
       execute : async (input: any)=>{
         console.log(input);
-        const response = await fetch(backendUrl+'/start?configurationName=Visa&deviceIp='+input.deviceDescriptor.ip);
+        const response = await fetch(backendUrl+'/start?configurationName=staging_emanuel&deviceIp='+input.deviceDescriptor.ip);
         var json;
         
         try {
@@ -35,7 +35,7 @@ const authenticator = new AuthenticatorBuilder()
     .withFinishStep({
       execute : async (input: any)=>{
         console.log(input);
-        const response = await fetch(backendUrl+'/finish?configurationName=Visa&vfp='+input.vfp);
+        const response = await fetch(backendUrl+'/finish?configurationName=staging_emanuel&vfp='+input.vfp);
         var json;
         
         try {
