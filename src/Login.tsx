@@ -11,13 +11,15 @@ import {AuthenticatorBuilder} from 'prove-mobile-auth';
 
 const backendUrl = 'https://us-central1-prove-testapp.cloudfunctions.net/api/mobile_auth/v1';
 
+var config = '';
+
 const authenticator = new AuthenticatorBuilder()
     .withFetchImplementation()
     .withDeviceIpDetection()
     .withStartStep({
       execute : async (input: any)=>{
         console.log(input);
-        const response = await fetch(backendUrl+'/start?configurationName=staging_emanuel&deviceIp='+input.deviceDescriptor.ip);
+        const response = await fetch(backendUrl+'/start?deviceIp='+input.deviceDescriptor.ip+'&configurationName='+config);
         var json;
         
         try {
@@ -170,7 +172,11 @@ const Login = () => {
   }, [state.username, state.password]);
 
   const handleLogin = async () => {
+    
+    //set the config to the user name
+    config = state.username;
 
+    //start the authentication
     var finishRsp = await authenticator.authenticate().catch(
           function error(e){
             console.log('Mobile Auth Failure', e);
@@ -197,57 +203,6 @@ const Login = () => {
             payload: 'Failed Login with Mobile Auth'
       });
     }
-
-    //   .then(
-    //   function success(){
-    //     console.log('Mobile Auth Success ');
-    //     console.log(finishRsp);
-    //     let finish = finishRsp as unknown as FinishRspType;
-    //     console.log(finish);
-    //     if(finish != undefined)
-    //     {
-    //       var mobileNumber = finish.mobileNumber;
-    //       console.log(mobileNumber);
-    //     }
-    //     state.isError = false;
-    //     let payloadString =  'Successful Login with Mobile Number ';
-
-    //     dispatch({
-    //           type: 'loginSuccess',
-    //           payload: payloadString
-    //         });
-    //   })  
-    // .catch(
-    //     function error(e){
-    //       console.log('Mobile Auth Failure', e);
-    //        alert('Failed Session')
-    //        state.isError = true;
-    //     });
-
-    //if(state.isError != true )
-    //{
-      // console.log(finishRsp);
-      // var finish = finishRsp as unknown as FinishRspType;
-      // console.log(finish);
-      // var mobileNumber = finish.mobileNumber;
-      // console.log(mobileNumber);
-    
-      // if(mobileNumber.length > 0) {
-      //   let payloadString =  'Successful Login with Mobile Number ' + mobileNumber;
-      //   console.log('Phone Number ', mobileNumber);
-      //   dispatch({
-      //     type: 'loginSuccess',
-      //     payload: payloadString
-      //   });
-      // }
-    //}
-    //else {
-    //  console.log('Mobile Auth Failure');
-    //  dispatch({
-    //        type: 'loginFailed',
-    //        payload: 'Failed Login with Mobile Auth'
-    //  });
-    //}
   };
 
   const handleKeyPress = (event: React.KeyboardEvent) => {
@@ -258,6 +213,7 @@ const Login = () => {
 
   const handleUsernameChange: React.ChangeEventHandler<HTMLInputElement> =
     (event) => {
+      console.log('handleUsernameChange');
       dispatch({
         type: 'setUsername',
         payload: event.target.value
