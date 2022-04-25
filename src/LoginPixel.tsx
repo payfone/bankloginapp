@@ -7,6 +7,8 @@ import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
 import CardHeader from '@material-ui/core/CardHeader';
 import Button from '@material-ui/core/Button';
+
+
 import {AuthenticatorBuilder} from 'prove-mobile-auth';
 
 const backendUrl = 'https://us-central1-prove-testapp.cloudfunctions.net/api/mobile_auth/v1';
@@ -14,7 +16,7 @@ const backendUrl = 'https://us-central1-prove-testapp.cloudfunctions.net/api/mob
 var config = '';
 
 const authenticator = new AuthenticatorBuilder()
-    .withFetchImplementation()
+    .withPixelImplementation()
     .withDeviceIpDetection()
     .withStartStep({
       execute : async (input: any)=>{
@@ -37,7 +39,7 @@ const authenticator = new AuthenticatorBuilder()
     .withFinishStep({
       execute : async (input: any)=>{
         console.log(input);
-        const response = await fetch(backendUrl+'/finish?configurationName=staging_emanuel&vfp='+input.vfp);
+        const response = await fetch(backendUrl+'/finish?vfp='+input.vfp+'&configurationName='+config);
         var json;
         
         try {
@@ -78,7 +80,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     header: {
       textAlign: 'center',
-      background: '#212121',
+      background: '#979797',
       color: '#fff'
     },
     card: {
@@ -153,7 +155,9 @@ const reducer = (state: State, action: Action): State => {
   }
 }
 
-const Login = () => {
+const LoginPixel = () => {
+  console.log('Single Pixel Flow','');
+
   const classes = useStyles();
   const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -172,7 +176,7 @@ const Login = () => {
   }, [state.username, state.password]);
 
   const handleLogin = async () => {
-    
+
     //set the config to the user name
     config = state.username;
 
@@ -274,4 +278,4 @@ const Login = () => {
   );
 }
 console.log(module);
-export default Login;
+export default LoginPixel;
