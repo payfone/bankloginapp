@@ -10,10 +10,12 @@ import Button from '@material-ui/core/Button';
 
 
 import {AuthenticatorBuilder} from 'prove-mobile-auth';
+import { resourceLimits } from 'worker_threads';
 
 const backendUrl = 'https://us-central1-prove-testapp.cloudfunctions.net/api/mobile_auth/v1';
 
 var config = '';
+var startRequestId ='';
 
 const authenticator = new AuthenticatorBuilder()
     .withPixelImplementation()
@@ -21,7 +23,10 @@ const authenticator = new AuthenticatorBuilder()
     .withStartStep({
       execute : async (input: any)=>{
         console.log(input);
-        const response = await fetch(backendUrl+'/start?deviceIp='+input.deviceDescriptor.ip+'&configurationName='+config);
+        const response = await fetch(backendUrl+'/start?'
+        +'configurationName='+config
+        +'&deviceIp='+input.deviceDescriptor.ip
+        +'&flow=pixel');
         var json;
         
         try {
@@ -33,6 +38,7 @@ const authenticator = new AuthenticatorBuilder()
         if (response.status !== 200) {
           throw new Error(json && json.error ? json.error : 'invalid response status code '+response.status);
         }
+        startRequestId = json.requestId;
         return { authUrl : json.redirectTargetUrl }
       }
     })
@@ -45,6 +51,7 @@ const authenticator = new AuthenticatorBuilder()
         try {
           json = await response.json();
           var jsonFinishRsp = JSON.stringify(json.phoneInfo);
+          var flowType=json.
           console.log('finish phone number ?' + jsonFinishRsp)
         } catch (e) {
           console.log(e)
@@ -53,13 +60,19 @@ const authenticator = new AuthenticatorBuilder()
         if (response.status !== 200) {
           throw new Error(json && json.error ? json.error : 'invalid response status code '+response.status);
         }
+
+        // "pixel" implementation does not return result to the client.
         return json.phoneInfo
       }
     })
     .build();
 
+type FinishType = {
+  requestId: string,
+  phoneInfo: FinishPhoneType
+};
 
-type FinishRspType = { 
+type FinishPhoneType = { 
   mobileNumber: string, 
   mobileOperatorName: string,
   mobileCountryCode: string,
@@ -156,7 +169,6 @@ const reducer = (state: State, action: Action): State => {
 }
 
 const LoginPixel = () => {
-  console.log('Single Pixel Flow','');
 
   const classes = useStyles();
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -176,20 +188,38 @@ const LoginPixel = () => {
   }, [state.username, state.password]);
 
   const handleLogin = async () => {
+    console.log('Single Pixel Flow','');
 
     //set the config to the user name
     config = state.username;
 
     //start the authentication
-    var finishRsp = await authenticator.authenticate().catch(
+    var finishWithPixelRsp = await authenticator.authenticate().catch(
           function error(e){
             console.log('Mobile Auth Failure', e);
           });
 
+    // if (finishWithPixelRsp.status !== 200) {
+    // throw new Error('cannot fetch results for pixel auth ('+finishWithPixelRsp.status+')');
+    // } else {}
+         
+    // "pixel" implementation does not return result to the client.
+    // we need to fetch it from the server, and server must expose it somehow  
+    // our demo server stores the result in a database under requestId key.        
+    const finishFullRsp = await fetch(backendUrl+'/result_with_pixel?requestId='+startRequestId);
+    var result = '';
+    if (finishFullRsp.status !== 200) {
+        throw new Error('Cannot get results for pixel auth ('+finishFullRsp.status+')');
+    } else {
+      result = await finishFullRsp.json();
+      console.log('Result: ', result);
+    }
+
     //process the response
-    let finish = finishRsp as unknown as FinishRspType;
+    let finish = result as unknown as FinishType;
+    console.log('Finish', finish);
     if(finish != undefined){
-      var mobileNumber = finish.mobileNumber;
+      var mobileNumber = finish.phoneInfo.mobileNumber;
       console.log('Mobile Auth Success ' + mobileNumber);
       state.isError = false;
       let payloadString =  'Successful Login with Mobile Number ' + mobileNumber;
@@ -207,6 +237,7 @@ const LoginPixel = () => {
             payload: 'Failed Login with Mobile Auth'
       });
     }
+
   };
 
   const handleKeyPress = (event: React.KeyboardEvent) => {

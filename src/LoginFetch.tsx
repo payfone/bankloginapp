@@ -19,7 +19,8 @@ const authenticator = new AuthenticatorBuilder()
     .withStartStep({
       execute : async (input: any)=>{
         console.log(input);
-        const response = await fetch(backendUrl+'/start?deviceIp='+input.deviceDescriptor.ip+'&configurationName='+config);
+        const response = await fetch(backendUrl+'/start?deviceIp='+input.deviceDescriptor.ip
+        +'&configurationName='+config);
         var json;
         
         try {
@@ -154,7 +155,6 @@ const reducer = (state: State, action: Action): State => {
 }
 
 const LoginFetch = () => {
-  console.log("Ajax/Fetch Flow");
   const classes = useStyles();
   const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -173,6 +173,7 @@ const LoginFetch = () => {
   }, [state.username, state.password]);
 
   const handleLogin = async () => {
+    console.log("Ajax/Fetch Flow");
 
     //set the config to the user name
     config = state.username;
