@@ -1,4 +1,4 @@
- import React, { useReducer, useEffect } from 'react';
+import React, { useReducer, useEffect } from 'react';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 
 import TextField from '@material-ui/core/TextField';
@@ -7,26 +7,21 @@ import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
 import CardHeader from '@material-ui/core/CardHeader';
 import Button from '@material-ui/core/Button';
-
-
 import {AuthenticatorBuilder} from 'prove-mobile-auth';
-import { resourceLimits } from 'worker_threads';
 
-const backendUrl = 'https://us-central1-prove-testapp.cloudfunctions.net/api/mobile_auth/v1';
+//const backendUrl = 'https://us-central1-prove-testapp.cloudfunctions.net/api/mobile_auth/v1';
+const backendUrl = 'https://gta.dev.prove-auth.proveapis.com/api/mobile_auth/v1';
 
 var config = '';
-var startRequestId ='';
 
 const authenticator = new AuthenticatorBuilder()
-    .withPixelImplementation()
+    .withFetchImplementation()
     .withDeviceIpDetection()
     .withStartStep({
       execute : async (input: any)=>{
         console.log(input);
-        const response = await fetch(backendUrl+'/start?'
-        +'configurationName='+config
-        +'&deviceIp='+input.deviceDescriptor.ip
-        +'&flow=pixel');
+        const response = await fetch(backendUrl+'/start?deviceIp='+input.deviceDescriptor.ip
+        +'&configurationName='+config);
         var json;
         
         try {
@@ -38,23 +33,33 @@ const authenticator = new AuthenticatorBuilder()
         if (response.status !== 200) {
           throw new Error(json && json.error ? json.error : 'invalid response status code '+response.status);
         }
-        startRequestId = json.requestId;
         return { authUrl : json.redirectTargetUrl }
       }
     })
     .withFinishStep({
-        // "pixel" implementation does not return result to the client.
-        // finish happens in the middle step on the server side     
-      
+      execute : async (input: any)=>{
+        console.log(input);
+        const response = await fetch(backendUrl+'/finish?vfp='+input.vfp+'&configurationName='+config);
+        var json;
+        
+        try {
+          json = await response.json();
+          var jsonFinishRsp = JSON.stringify(json.phoneInfo);
+          console.log('finish phone number ?' + jsonFinishRsp)
+        } catch (e) {
+          console.log(e)
+        }
+
+        if (response.status !== 200) {
+          throw new Error(json && json.error ? json.error : 'invalid response status code '+response.status);
+        }
+        return json.phoneInfo
+      }
     })
     .build();
 
-type FinishType = {
-  requestId: string,
-  phoneInfo: FinishPhoneType
-};
 
-type FinishPhoneType = { 
+type FinishRspType = { 
   mobileNumber: string, 
   mobileOperatorName: string,
   mobileCountryCode: string,
@@ -75,7 +80,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     header: {
       textAlign: 'center',
-      background: '#979797',
+      background: '#212121',
       color: '#fff'
     },
     card: {
@@ -150,8 +155,7 @@ const reducer = (state: State, action: Action): State => {
   }
 }
 
-const LoginPixel = () => {
-
+const LoginFetchGta = () => {
   const classes = useStyles();
   const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -170,38 +174,21 @@ const LoginPixel = () => {
   }, [state.username, state.password]);
 
   const handleLogin = async () => {
-    console.log('Single Pixel Flow','');
+    console.log("Ajax/Fetch Flow");
 
     //set the config to the user name
     config = state.username;
 
     //start the authentication
-    var finishWithPixelRsp = await authenticator.authenticate().catch(
+    var finishRsp = await authenticator.authenticate().catch(
           function error(e){
             console.log('Mobile Auth Failure', e);
           });
 
-    // if (finishWithPixelRsp.status !== 200) {
-    // throw new Error('cannot fetch results for pixel auth ('+finishWithPixelRsp.status+')');
-    // } else {}
-         
-    // "pixel" implementation does not return result to the client.
-    // we need to fetch it from the server, and server must expose it somehow  
-    // our demo server stores the result in a database under requestId key.        
-    const finishFullRsp = await fetch(backendUrl+'/result_with_pixel?requestId='+startRequestId);
-    var result = '';
-    if (finishFullRsp.status !== 200) {
-        throw new Error('Cannot get results for pixel auth ('+finishFullRsp.status+')');
-    } else {
-      result = await finishFullRsp.json();
-      console.log('Result: ', result);
-    }
-
     //process the response
-    let finish = result as unknown as FinishType;
-    console.log('Finish', finish);
+    let finish = finishRsp as unknown as FinishRspType;
     if(finish != undefined){
-      var mobileNumber = finish.phoneInfo.mobileNumber;
+      var mobileNumber = finish.mobileNumber;
       console.log('Mobile Auth Success ' + mobileNumber);
       state.isError = false;
       let payloadString =  'Successful Login with Mobile Number ' + mobileNumber;
@@ -219,7 +206,6 @@ const LoginPixel = () => {
             payload: 'Failed Login with Mobile Auth'
       });
     }
-
   };
 
   const handleKeyPress = (event: React.KeyboardEvent) => {
@@ -291,4 +277,4 @@ const LoginPixel = () => {
   );
 }
 console.log(module);
-export default LoginPixel;
+export default LoginFetchGta;

@@ -12,7 +12,8 @@ import Button from '@material-ui/core/Button';
 import {AuthenticatorBuilder} from 'prove-mobile-auth';
 import { resourceLimits } from 'worker_threads';
 
-const backendUrl = 'https://us-central1-prove-testapp.cloudfunctions.net/api/mobile_auth/v1';
+//const backendUrl = 'https://us-central1-prove-testapp.cloudfunctions.net/api/mobile_auth/v1';
+const backendUrl = 'https://gta.dev.prove-auth.proveapis.com/api/mobile_auth/v1';
 
 var config = '';
 var startRequestId ='';
@@ -26,7 +27,7 @@ const authenticator = new AuthenticatorBuilder()
         const response = await fetch(backendUrl+'/start?'
         +'configurationName='+config
         +'&deviceIp='+input.deviceDescriptor.ip
-        +'&flow=pixel');
+        +'&flow=pixel-gta');
         var json;
         
         try {
@@ -44,8 +45,7 @@ const authenticator = new AuthenticatorBuilder()
     })
     .withFinishStep({
         // "pixel" implementation does not return result to the client.
-        // finish happens in the middle step on the server side     
-      
+        // finish happens in the middle step on the server side      
     })
     .build();
 
@@ -150,7 +150,7 @@ const reducer = (state: State, action: Action): State => {
   }
 }
 
-const LoginPixel = () => {
+const LoginPixelGta = () => {
 
   const classes = useStyles();
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -291,4 +291,4 @@ const LoginPixel = () => {
   );
 }
 console.log(module);
-export default LoginPixel;
+export default LoginPixelGta;
