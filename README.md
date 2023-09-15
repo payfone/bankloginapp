@@ -44,3 +44,12 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+
+## FIREBASE# bankloginapp
+1. This app runs on firebase at https://bankloginapp.web.app/pixel or https://bankloginapp.web.app/fetch
+2. This hits STG environment via the firebase mockserver (or GTA dev server)
+3. In order to execute this flow make sure you have your test name configured on firebase mockserver 
+4. Enter the test name into username field, leave the password blank
+5. The bankloginapp only works on cellular (TMO/VZW via /fetch or ATT/VZW/ATT via pixel)
+6. The bankloginapp device cannot be on VPN
