@@ -12,7 +12,6 @@ import Button from '@material-ui/core/Button';
 import {AuthenticatorBuilder} from 'prove-mobile-auth';
 import { resourceLimits } from 'worker_threads';
 
-//const backendUrl = 'https://us-central1-prove-testapp.cloudfunctions.net/api/mobile_auth/v1';
 const backendUrl = 'https://gta.dev.prove-auth.proveapis.com/mobile_auth/v1';
 
 var config = '';

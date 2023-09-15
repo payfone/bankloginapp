@@ -6,6 +6,7 @@ import LoginFetch from './LoginFetch';
 import LoginFetchGta from './LoginFetchGta';
 import LoginPixel from './LoginPixel';
 import LoginPixelGta from './LoginPixelGta';
+import LoginPixelGtaWells from './LoginPixelGtaWells';
 
 function App() {
   return (
