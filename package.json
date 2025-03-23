@@ -10,7 +10,7 @@
     "@types/jest": "^26.0.23",
     "@types/node": "^12.20.15",
     "@types/react": "^17.0.11",
-    "@types/react-dom": "^17.0.7",
+    "@types/react-dom": "^17.0.26",
     "@types/react-router-dom": "5.3.3",
     "express": "^4.17.1",
     "prove-mobile-auth": "file:prove-mobile-auth-2.7.2.tgz",
