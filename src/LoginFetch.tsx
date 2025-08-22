@@ -8,151 +8,26 @@ import CardActions from '@material-ui/core/CardActions';
 import CardHeader from '@material-ui/core/CardHeader';
 import Button from '@material-ui/core/Button';
 import {AuthenticatorBuilder} from 'prove-mobile-auth';
+import {startStep, finishStep} from './CustomSteps'
+import { State, Action, FinishPhoneType, useStyles, reducer, initialState } from './Base';
 
-const backendUrl = 'https://us-central1-prove-testapp.cloudfunctions.net/api/mobile_auth/v1';
-
-var config = '';
+const backendUrl = 'https://gta.dev.prove-auth.proveapis.com/mobile_auth/v1';
 
 const authenticator = new AuthenticatorBuilder()
     .withFetchImplementation()
     .withDeviceIpDetection()
     .withStartStep({
       execute : async (input: any)=>{
-        console.log(input);
-        const response = await fetch(backendUrl+'/start?deviceIp='+input.deviceDescriptor.ip
-        +'&configurationName='+config);
-        var json;
-        
-        try {
-          json = await response.json();
-        } catch (e) {
-          console.log(e)
-        }
-
-        if (response.status !== 200) {
-          throw new Error(json && json.error ? json.error : 'invalid response status code '+response.status);
-        }
-        return { authUrl : json.redirectTargetUrl }
+        return { authUrl : await startStep(input, 'fetch')}
       }
     })
     .withFinishStep({
       execute : async (input: any)=>{
-        console.log(input);
-        const response = await fetch(backendUrl+'/finish?vfp='+input.vfp+'&configurationName='+config);
-        var json;
-        
-        try {
-          json = await response.json();
-          var jsonFinishRsp = JSON.stringify(json.phoneInfo);
-          console.log('finish phone number ?' + jsonFinishRsp)
-        } catch (e) {
-          console.log(e)
-        }
-
-        if (response.status !== 200) {
-          throw new Error(json && json.error ? json.error : 'invalid response status code '+response.status);
-        }
-        return json.phoneInfo
+        return await finishStep(input);
       }
     })
     .build();
 
-
-type FinishRspType = { 
-  mobileNumber: string, 
-  mobileOperatorName: string,
-  mobileCountryCode: string,
-  payfoneAlias: string 
-};
-
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    container: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      width: 400,
-      margin: `${theme.spacing(0)} auto`
-    },
-    loginBtn: {
-      marginTop: theme.spacing(2),
-      flexGrow: 1
-    },
-    header: {
-      textAlign: 'center',
-      background: '#212121',
-      color: '#fff'
-    },
-    card: {
-      marginTop: theme.spacing(10)
-    }
-  })
-);
-
-//state type
-type State = {
-  username: string
-  password:  string
-  isButtonDisabled: boolean
-  helperText: string
-  isError: boolean
-};
-
-const initialState:State = {
-  username: '',
-  password: '',
-  isButtonDisabled: true,
-  helperText: '',
-  isError: false,
-};
-
-type Action = { type: 'setUsername', payload: string }
-  | { type: 'setPassword', payload: string }
-  | { type: 'setIsButtonDisabled', payload: boolean }
-  | { type: 'loginSuccess', payload: string }
-  | { type: 'loginFailed', payload: string }
-  | { type: 'setIsError', payload: boolean }
-  | { type: 'tryPasswordLogin', payload: boolean }
-
-const reducer = (state: State, action: Action): State => {
-  switch (action.type) {
-    case 'setUsername': 
-      return {
-        ...state,
-        username: action.payload
-      };
-    case 'setPassword': 
-      return {
-        ...state,
-        password: action.payload
-      };
-    case 'setIsButtonDisabled': 
-      return {
-        ...state,
-        isButtonDisabled: action.payload
-      };
-    case 'loginSuccess': 
-      return {
-        ...state,
-        helperText: action.payload,
-        isError: false
-      };
-    case 'loginFailed': 
-      return {
-        ...state,
-        helperText: action.payload,
-        isError: true
-      };
-    case 'setIsError': 
-      return {
-        ...state,
-        isError: action.payload
-      };
-    case 'tryPasswordLogin':
-      return{
-      ...state
-    };
-  }
-}
 
 const LoginFetch = () => {
   const classes = useStyles();
@@ -176,7 +51,7 @@ const LoginFetch = () => {
     console.log("Ajax/Fetch Flow");
 
     //set the config to the user name
-    config = state.username;
+    globalThis.config = state.username;
 
     //start the authentication
     var finishRsp = await authenticator.authenticate().catch(
@@ -185,7 +60,7 @@ const LoginFetch = () => {
           });
 
     //process the response
-    let finish = finishRsp as unknown as FinishRspType;
+    let finish = finishRsp as unknown as FinishPhoneType;
     if(finish != undefined){
       var mobileNumber = finish.mobileNumber;
       console.log('Mobile Auth Success ' + mobileNumber);

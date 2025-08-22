@@ -7,11 +7,10 @@ import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
 import CardHeader from '@material-ui/core/CardHeader';
 import Button from '@material-ui/core/Button';
-import {startStep, finishStep} from "./CustomSteps"
-import { FinishType, useStyles, reducer, initialState } from './Base';
 
-import {AuthenticatorBuilder} from 'prove-mobile-auth';
-import { resourceLimits } from 'worker_threads';
+import {AuthenticatorBuilder, DeviceDescriptor} from 'prove-mobile-auth';
+import { FinishType, useStyles, reducer, initialState } from './Base';
+import {startStep, finishStep} from './CustomSteps'
 
 const backendUrl = 'https://gta.dev.prove-auth.proveapis.com/mobile_auth/v1';
 
@@ -20,7 +19,7 @@ const authenticator = new AuthenticatorBuilder()
     .withDeviceIpDetection()
     .withStartStep({
       execute : async (input: any)=>{
-        return { authUrl : await startStep(input, 'pixel')}
+        return { authUrl : await startStep(input, 'pixel-gta')}
       }
     })
     .withFinishStep({
@@ -30,13 +29,26 @@ const authenticator = new AuthenticatorBuilder()
     })
     .build();
 
-const LoginPixel = () => {
+
+const LoginPixelModular = () => {
 
   const classes = useStyles();
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  /**
+   * A modular login. The steps must be executed in the defined sequence but the caller could include additional logic
+   * or otherwise manage this flow explicitly.
+   */
+  const authenticate = async () => {
+    var ip = await authenticator.findMyIp()
+    var deviceDescriptor = new DeviceDescriptor(ip = ip)
+    var authUrl = await authenticator.startStep(deviceDescriptor)
+    var vfp = await authenticator.authenticateWithRedirect(deviceDescriptor, authUrl)
+    await authenticator.finishStep(deviceDescriptor, vfp)
+  }
+
   useEffect(() => {
-    if (state.username.trim() /*&& state.password.trim()*/) {
+    if (state.username.trim()) {
      dispatch({
        type: 'setIsButtonDisabled',
        payload: false
@@ -49,25 +61,21 @@ const LoginPixel = () => {
     }
   }, [state.username, state.password]);
 
+
   const handleLogin = async () => {
     console.log('Single Pixel Flow','');
 
     //set the config to the user name
     globalThis.config = state.username;
 
-    //start the authentication
-    var finishWithPixelRsp = await authenticator.authenticate().catch(
-          function error(e){
-            console.log('Mobile Auth Failure', e);
-          });
+    await authenticate().catch(
+      function error(e){
+        console.log('Mobile Auth Failure', e);
+      });
 
-    // if (finishWithPixelRsp.status !== 200) {
-    // throw new Error('cannot fetch results for pixel auth ('+finishWithPixelRsp.status+')');
-    // } else {}
-         
     // "pixel" implementation does not return result to the client.
-    // we need to fetch it from the server, and server must expose it somehow  
-    // our demo server stores the result in a database under requestId key.        
+    // We need to fetch it from the server and server must expose it.
+    // Our demo server stores the result in a database under requestId key.        
     const finishFullRsp = await fetch(backendUrl+'/result_with_pixel?requestId='+ globalThis.startRequestId);
     var result = '';
     if (finishFullRsp.status !== 200) {
@@ -171,4 +179,4 @@ const LoginPixel = () => {
   );
 }
 console.log(module);
-export default LoginPixel;
+export default LoginPixelModular;
