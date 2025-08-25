@@ -41,7 +41,7 @@ const LoginPixelModular = () => {
    */
   const authenticate = async () => {
     var ip = await authenticator.findMyIp()
-    var deviceDescriptor = new DeviceDescriptor(ip = ip)
+    var deviceDescriptor = new DeviceDescriptor(ip)
     var authUrl = await authenticator.startStep(deviceDescriptor)
     var vfp = await authenticator.authenticateWithRedirect(deviceDescriptor, authUrl)
     await authenticator.finishStep(deviceDescriptor, vfp)

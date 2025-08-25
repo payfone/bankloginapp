@@ -6,9 +6,17 @@ declare global {
 export const backendUrl = 'https://gta.dev.prove-auth.proveapis.com/mobile_auth/v1';
 
 export async function startStep(input: any, flow: string) {
-    const response = await fetch(backendUrl+'/start?deviceIp='+input.providedDeviceDescriptor.ip
-    +'&configurationName='+globalThis.config
-    +'&flow=' + flow);
+    var response;
+    
+    if (input.providedDeviceDescriptor) {
+        response = await fetch(backendUrl+'/start?deviceIp='+input.providedDeviceDescriptor.ip
+        +'&configurationName='+globalThis.config
+        +'&flow=' + flow);
+    } else {
+        response = await fetch(backendUrl+'/start?deviceIp='+input.deviceDescriptor.ip
+        +'&configurationName='+globalThis.config
+        +'&flow=' + flow);
+    }
     var json;
     
     try {
