@@ -3,9 +3,7 @@ declare global {
   var startRequestId: string;
 }
 
-export const backendUrl = 'https://gta.dev.prove-auth.proveapis.com/mobile_auth/v1';
-
-export async function startStep(input: any, flow: string) {
+export async function startStep(input: any, flow: string, backendUrl: string) {
     var response;
     
     if (input.providedDeviceDescriptor) {
@@ -34,7 +32,7 @@ export async function startStep(input: any, flow: string) {
 }
 
 
-export async function finishStep(input: any) {
+export async function finishStep(input: any, backendUrl: string) {
     const response = await fetch(backendUrl+'/finish?vfp='+input.vfp+'&configurationName='+globalThis.config);
     var json;
     

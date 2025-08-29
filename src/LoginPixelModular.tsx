@@ -1,40 +1,46 @@
- import React, { useReducer, useEffect } from 'react';
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
-
+import React, { useReducer, useEffect } from 'react';
 import TextField from '@material-ui/core/TextField';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
 import CardHeader from '@material-ui/core/CardHeader';
 import Button from '@material-ui/core/Button';
-
 import {AuthenticatorBuilder, DeviceDescriptor} from 'prove-mobile-auth';
-import { FinishType, useStyles, reducer, initialState } from './Base';
+import { backendUrlGta, backendUrlCloud, FinishType, useStyles, reducer, initialState } from './Base';
 import {startStep, finishStep} from './CustomSteps'
+import { useLocation } from "react-router-dom";
 
-const backendUrl = 'https://gta.dev.prove-auth.proveapis.com/mobile_auth/v1';
+var backendUrl = ""
 
 const authenticator = new AuthenticatorBuilder()
     .withPixelImplementation()
     .withDeviceIpDetection()
     .withStartStep({
       execute : async (input: any)=>{
-        return { authUrl : await startStep(input, 'pixel-gta')}
+       return { authUrl : await startStep(input, 'pixel', backendUrl)}
       }
     })
     .withFinishStep({
       execute : async (input: any)=>{
-        return await finishStep(input);
+        return await finishStep(input, backendUrl);
       }
     })
     .build();
 
 
 const LoginPixelModular = () => {
-
   const classes = useStyles();
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  // We have two different environments we can run this in
+  const { search } = useLocation();
+  if (search === "?env=cloud") {
+    backendUrl = backendUrlCloud
+  }
+  else {
+    backendUrl = backendUrlGta;
+  }
+   
   /**
    * A modular login. The steps must be executed in the defined sequence but the caller could include additional logic
    * or otherwise manage this flow explicitly.
@@ -65,6 +71,7 @@ const LoginPixelModular = () => {
   const handleLogin = async () => {
     console.log('Single Pixel Flow','');
 
+
     //set the config to the user name
     globalThis.config = state.username;
 
@@ -76,7 +83,7 @@ const LoginPixelModular = () => {
     // "pixel" implementation does not return result to the client.
     // We need to fetch it from the server and server must expose it.
     // Our demo server stores the result in a database under requestId key.        
-    const finishFullRsp = await fetch(backendUrl+'/result_with_pixel?requestId='+ globalThis.startRequestId);
+    const finishFullRsp = await fetch(backendUrl + '/result_with_pixel?requestId='+ globalThis.startRequestId);
     var result = '';
     if (finishFullRsp.status !== 200) {
         throw new Error('Cannot get results for pixel auth ('+finishFullRsp.status+')');
@@ -88,7 +95,7 @@ const LoginPixelModular = () => {
     //process the response
     let finish = result as unknown as FinishType;
     console.log('Finish', finish);
-    if(finish != undefined){
+    if(finish !== undefined){
       var mobileNumber = finish.phoneInfo.mobileNumber;
       console.log('Mobile Auth Success ' + mobileNumber);
       state.isError = false;

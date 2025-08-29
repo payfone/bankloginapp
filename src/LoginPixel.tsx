@@ -1,6 +1,4 @@
- import React, { useReducer, useEffect } from 'react';
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
-
+import React, { useReducer, useEffect } from 'react';
 import TextField from '@material-ui/core/TextField';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
@@ -8,35 +6,42 @@ import CardActions from '@material-ui/core/CardActions';
 import CardHeader from '@material-ui/core/CardHeader';
 import Button from '@material-ui/core/Button';
 import {startStep, finishStep} from "./CustomSteps"
-import { FinishType, useStyles, reducer, initialState } from './Base';
-
+import { backendUrlGta, backendUrlCloud, FinishType, useStyles, reducer, initialState } from './Base';
 import {AuthenticatorBuilder} from 'prove-mobile-auth';
-import { resourceLimits } from 'worker_threads';
+import { useLocation } from "react-router-dom";
 
-const backendUrl = 'https://gta.dev.prove-auth.proveapis.com/mobile_auth/v1';
+var backendUrl = ""
 
 const authenticator = new AuthenticatorBuilder()
     .withPixelImplementation()
     .withDeviceIpDetection()
     .withStartStep({
       execute : async (input: any)=>{
-        return { authUrl : await startStep(input, 'pixel')}
+        return { authUrl : await startStep(input, 'pixel', backendUrl)}
       }
     })
     .withFinishStep({
       execute : async (input: any)=>{
-        return await finishStep(input);
+        return await finishStep(input, backendUrl);
       }
     })
     .build();
 
 const LoginPixel = () => {
-
   const classes = useStyles();
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  // We have two different environments we can run this in
+  const { search } = useLocation();
+  if (search === "?env=cloud") {
+    backendUrl = backendUrlCloud
+  }
+  else {
+    backendUrl = backendUrlGta;
+  }
+
   useEffect(() => {
-    if (state.username.trim() /*&& state.password.trim()*/) {
+    if (state.username.trim()) {
      dispatch({
        type: 'setIsButtonDisabled',
        payload: false
