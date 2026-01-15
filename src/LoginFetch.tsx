@@ -1,14 +1,9 @@
 import React, { useReducer, useEffect } from 'react';
-import TextField from '@material-ui/core/TextField';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import CardActions from '@material-ui/core/CardActions';
-import CardHeader from '@material-ui/core/CardHeader';
-import Button from '@material-ui/core/Button';
 import {AuthenticatorBuilder} from 'prove-mobile-auth';
 import {startStep, finishStep} from './CustomSteps'
-import { backendUrlGta, backendUrlCloud, FinishPhoneType, useStyles, reducer, initialState } from './Base';
+import { backendUrlGta, backendUrlCloud, FinishPhoneType, reducer, initialState } from './Base';
 import { useLocation } from "react-router-dom";
+import LoginForm from './LoginForm';
 
 var backendUrl = ""
 
@@ -29,7 +24,6 @@ const authenticator = new AuthenticatorBuilder()
 
 
 const LoginFetch = () => {
-  const classes = useStyles();
   const [state, dispatch] = useReducer(reducer, initialState);
 
   // We have two different environments we can run this in
@@ -113,49 +107,15 @@ const LoginFetch = () => {
       });
     }
   return (
-    <form className={classes.container} noValidate autoComplete="off">
-      <Card className={classes.card}>
-        <CardHeader className={classes.header} title="Bank Login App" />
-        <CardContent>
-          <div>
-            <TextField
-              error={state.isError}
-              fullWidth
-              id="username"
-              type="email"
-              label="Username"
-              placeholder="Username"
-              margin="normal"
-              onChange={handleUsernameChange}
-              onKeyPress={handleKeyPress}
-            />
-            <TextField
-              error={state.isError}
-              fullWidth
-              id="password"
-              type="password"
-              label="Password"
-              placeholder="Password"
-              margin="normal"
-              helperText={state.helperText}
-              onChange={handlePasswordChange}
-              onKeyPress={handleKeyPress}
-            />
-          </div>
-        </CardContent>
-        <CardActions>
-          <Button
-            variant="contained"
-            size="large"
-            color="secondary"
-            className={classes.loginBtn}
-            onClick={handleLogin}
-            disabled={state.isButtonDisabled}>
-            Login
-          </Button>
-        </CardActions>
-      </Card>
-    </form>
+    <LoginForm
+      state={state}
+      onUsernameChange={handleUsernameChange}
+      onPasswordChange={handlePasswordChange}
+      onKeyPress={handleKeyPress}
+      onLogin={handleLogin}
+      title="Bank Login App - Fetch"
+      buttonText="Login with Fetch"
+    />
   );
 }
 console.log(module);
