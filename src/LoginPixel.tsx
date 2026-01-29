@@ -6,13 +6,14 @@ import { useLocation } from "react-router-dom";
 import LoginForm from './LoginForm';
 
 var backendUrl = ""
+var flowPath = ""
 
 const authenticator = new AuthenticatorBuilder()
     .withPixelImplementation()
     .withDeviceIpDetection()
     .withStartStep({
       execute : async (input: any)=>{
-        return { authUrl : await startStep(input, 'pixel', backendUrl)}
+        return { authUrl : await startStep(input, flowPath, backendUrl)}
       }
     })
     .withFinishStep({
@@ -29,9 +30,11 @@ const LoginPixel = () => {
   const { search } = useLocation();
   if (search === "?env=cloud") {
     backendUrl = backendUrlCloud
+    flowPath = "pixel"
   }
   else {
     backendUrl = backendUrlGta;
+    flowPath = "pixel-gta"
   }
 
   useEffect(() => {
