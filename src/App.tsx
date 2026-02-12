@@ -1,15 +1,8 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import LoginFetch from './LoginFetch';
 import LoginPixel from './LoginPixel';
 import LoginPixelModular from './LoginPixelModular';
-
-/**
- * Modify this file when a new path is added. Currently, fetch and pixl are supported
- */
-
 
 function App() {
   return (

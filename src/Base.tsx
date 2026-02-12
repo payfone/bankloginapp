@@ -4,7 +4,7 @@ export const backendUrlGta = 'https://gta.dev.prove-auth.proveapis.com/mobile_au
 export const backendUrlCloud = 'https://us-central1-prove-testapp.cloudfunctions.net/api/mobile_auth/v1';
 
 /**
- * Exports that are required by all of the flows
+ * Exports that are required by all of the flows. This has been pulled into a base class to avoid code duplication.
  */
 export type FinishType = {
   requestId: string,

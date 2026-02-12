@@ -6,15 +6,10 @@ declare global {
 export async function startStep(input: any, flow: string, backendUrl: string) {
     var response;
     
-    if (input.providedDeviceDescriptor) {
-        response = await fetch(backendUrl+'/start?deviceIp='+input.providedDeviceDescriptor.ip
-        +'&configurationName='+globalThis.config
-        +'&flow=' + flow);
-    } else {
-        response = await fetch(backendUrl+'/start?deviceIp='+input.deviceDescriptor.ip
-        +'&configurationName='+globalThis.config
-        +'&flow=' + flow);
-    }
+    response = await fetch(backendUrl+'/start?deviceIp='+input.deviceDescriptor.ip
+    +'&configurationName='+globalThis.config
+    +'&flow=' + flow);
+
     var json;
     
     try {

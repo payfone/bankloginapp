@@ -1,9 +1,10 @@
-import React, { useReducer, useEffect } from 'react';
+import { useReducer } from 'react';
 import {startStep, finishStep} from "./CustomSteps"
-import { backendUrlGta, backendUrlCloud, FinishType, reducer, initialState } from './Base';
-import {AuthenticatorBuilder} from 'prove-mobile-auth';
-import { useLocation } from "react-router-dom";
+import { FinishType, reducer, initialState } from './Base';
+import { AuthenticatorBuilder } from 'prove-mobile-auth';
 import LoginForm from './LoginForm';
+import { useLoginFormHandlers } from './useLoginFormHandlers';
+import { getBackendUrl, getFlowPath } from './backendUtils'
 
 var backendUrl = ""
 var flowPath = ""
@@ -26,30 +27,10 @@ const authenticator = new AuthenticatorBuilder()
 const LoginPixel = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // We have two different environments we can run this in
-  const { search } = useLocation();
-  if (search === "?env=cloud") {
-    backendUrl = backendUrlCloud
-    flowPath = "pixel"
-  }
-  else {
-    backendUrl = backendUrlGta;
-    flowPath = "pixel-gta"
-  }
-
-  useEffect(() => {
-    if (state.username.trim()) {
-     dispatch({
-       type: 'setIsButtonDisabled',
-       payload: false
-     });
-    } else {
-      dispatch({
-        type: 'setIsButtonDisabled',
-        payload: true
-      });
-    }
-  }, [state.username, state.password]);
+  const params = new URLSearchParams(window.location.search)
+  const env = params.get('env')
+  backendUrl = getBackendUrl(env)
+  flowPath = getFlowPath(env)
 
   const handleLogin = async () => {
     console.log('Single Pixel Flow','');
@@ -63,10 +44,6 @@ const LoginPixel = () => {
             console.log('Mobile Auth Failure', e);
           });
 
-    // if (finishWithPixelRsp.status !== 200) {
-    // throw new Error('cannot fetch results for pixel auth ('+finishWithPixelRsp.status+')');
-    // } else {}
-         
     // "pixel" implementation does not return result to the client.
     // we need to fetch it from the server, and server must expose it somehow  
     // our demo server stores the result in a database under requestId key.        
@@ -104,28 +81,9 @@ const LoginPixel = () => {
 
   };
 
-  const handleKeyPress = (event: React.KeyboardEvent) => {
-    if (event.keyCode === 13 || event.which === 13) {
-      state.isButtonDisabled || handleLogin();
-    }
-  };
+  const { handleKeyPress, handleUsernameChange, handlePasswordChange } =
+    useLoginFormHandlers(dispatch, state, handleLogin);
 
-  const handleUsernameChange: React.ChangeEventHandler<HTMLInputElement> =
-    (event) => {
-      console.log('handleUsernameChange');
-      dispatch({
-        type: 'setUsername',
-        payload: event.target.value
-      });
-    };
-
-  const handlePasswordChange: React.ChangeEventHandler<HTMLInputElement> =
-    (event) => {
-      dispatch({
-        type: 'setPassword',
-        payload: event.target.value
-      });
-    }
   return (
     <LoginForm
       state={state}

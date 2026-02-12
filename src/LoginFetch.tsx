@@ -1,11 +1,12 @@
-import React, { useReducer, useEffect } from 'react';
+import { useReducer, useMemo } from 'react';
 import {AuthenticatorBuilder} from 'prove-mobile-auth';
 import {startStep, finishStep} from './CustomSteps'
-import { backendUrlGta, backendUrlCloud, FinishPhoneType, reducer, initialState } from './Base';
-import { useLocation } from "react-router-dom";
 import LoginForm from './LoginForm';
+import { useLoginFormHandlers } from './useLoginFormHandlers';
+import { getBackendUrl } from './backendUtils'
+import { reducer, initialState, FinishPhoneType } from './Base';
 
-var backendUrl = ""
+var backendUrl: string = "";
 
 const authenticator = new AuthenticatorBuilder()
     .withFetchImplementation()
@@ -26,28 +27,9 @@ const authenticator = new AuthenticatorBuilder()
 const LoginFetch = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // We have two different environments we can run this in
-  const { search } = useLocation();
-  if (search === "?env=cloud") {
-    backendUrl = backendUrlCloud
-  }
-  else {
-    backendUrl = backendUrlGta;
-  }
-  
- useEffect(() => {
-    if (state.username.trim()) {
-     dispatch({
-       type: 'setIsButtonDisabled',
-       payload: false
-     });
-    } else {
-      dispatch({
-        type: 'setIsButtonDisabled',
-        payload: true
-      });
-    }
-  }, [state.username, state.password]);
+  const params = new URLSearchParams(window.location.search)
+  const env = params.get('env')
+  backendUrl = getBackendUrl(env)
 
   const handleLogin = async () => {
     console.log("Ajax/Fetch Flow");
@@ -84,28 +66,9 @@ const LoginFetch = () => {
     }
   };
 
-  const handleKeyPress = (event: React.KeyboardEvent) => {
-    if (event.keyCode === 13 || event.which === 13) {
-      state.isButtonDisabled || handleLogin();
-    }
-  };
+  const { handleKeyPress, handleUsernameChange, handlePasswordChange } =
+    useLoginFormHandlers(dispatch, state, handleLogin);
 
-  const handleUsernameChange: React.ChangeEventHandler<HTMLInputElement> =
-    (event) => {
-      console.log('handleUsernameChange');
-      dispatch({
-        type: 'setUsername',
-        payload: event.target.value
-      });
-    };
-
-  const handlePasswordChange: React.ChangeEventHandler<HTMLInputElement> =
-    (event) => {
-      dispatch({
-        type: 'setPassword',
-        payload: event.target.value
-      });
-    }
   return (
     <LoginForm
       state={state}

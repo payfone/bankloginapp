@@ -1,14 +1,10 @@
-import React, { useReducer, useEffect } from 'react';
-import TextField from '@material-ui/core/TextField';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import CardActions from '@material-ui/core/CardActions';
-import CardHeader from '@material-ui/core/CardHeader';
-import Button from '@material-ui/core/Button';
+import { useReducer } from 'react';
 import {AuthenticatorBuilder, DeviceDescriptor} from 'prove-mobile-auth';
-import { backendUrlGta, backendUrlCloud, FinishType, useStyles, reducer, initialState } from './Base';
-import {startStep, finishStep} from './CustomSteps'
-import { useLocation } from "react-router-dom";
+import { FinishType, useStyles, reducer, initialState } from './Base';
+import  {startStep, finishStep } from './CustomSteps'
+import { useLoginFormHandlers } from './useLoginFormHandlers';
+import LoginForm from './LoginForm';
+import { getBackendUrl, getFlowPath } from './backendUtils'
 
 var backendUrl = ""
 var flowPath = ""
@@ -33,16 +29,10 @@ const LoginPixelModular = () => {
   const classes = useStyles();
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // We have two different environments we can run this in
-  const { search } = useLocation();
-  if (search === "?env=cloud") {
-    backendUrl = backendUrlCloud
-    flowPath = "pixel"
-  }
-  else {
-    backendUrl = backendUrlGta;
-    flowPath = "pixel-gta"
-  }
+  const params = new URLSearchParams(window.location.search)
+  const env = params.get('env')
+  backendUrl = getBackendUrl(env)
+  flowPath = getFlowPath(env)
    
   /**
    * A modular login. The steps must be executed in the defined sequence but the caller could include additional logic
@@ -55,21 +45,6 @@ const LoginPixelModular = () => {
     var vfp = await authenticator.authenticateWithRedirect(deviceDescriptor, authUrl)
     await authenticator.finishStep(deviceDescriptor, vfp)
   }
-
-  useEffect(() => {
-    if (state.username.trim()) {
-     dispatch({
-       type: 'setIsButtonDisabled',
-       payload: false
-     });
-    } else {
-      dispatch({
-        type: 'setIsButtonDisabled',
-        payload: true
-      });
-    }
-  }, [state.username, state.password]);
-
 
   const handleLogin = async () => {
     console.log('Single Pixel Flow','');
@@ -120,72 +95,19 @@ const LoginPixelModular = () => {
 
   };
 
-  const handleKeyPress = (event: React.KeyboardEvent) => {
-    if (event.keyCode === 13 || event.which === 13) {
-      state.isButtonDisabled || handleLogin();
-    }
-  };
+  const { handleKeyPress, handleUsernameChange, handlePasswordChange } =
+    useLoginFormHandlers(dispatch, state, handleLogin);
 
-  const handleUsernameChange: React.ChangeEventHandler<HTMLInputElement> =
-    (event) => {
-      console.log('handleUsernameChange');
-      dispatch({
-        type: 'setUsername',
-        payload: event.target.value
-      });
-    };
-
-  const handlePasswordChange: React.ChangeEventHandler<HTMLInputElement> =
-    (event) => {
-      dispatch({
-        type: 'setPassword',
-        payload: event.target.value
-      });
-    }
   return (
-    <form className={classes.container} noValidate autoComplete="off">
-      <Card className={classes.card}>
-        <CardHeader className={classes.header} title="Bank Login App" />
-        <CardContent>
-          <div>
-            <TextField
-              error={state.isError}
-              fullWidth
-              id="username"
-              type="email"
-              label="Username"
-              placeholder="Username"
-              margin="normal"
-              onChange={handleUsernameChange}
-              onKeyPress={handleKeyPress}
-            />
-            <TextField
-              error={state.isError}
-              fullWidth
-              id="password"
-              type="password"
-              label="Password"
-              placeholder="Password"
-              margin="normal"
-              helperText={state.helperText}
-              onChange={handlePasswordChange}
-              onKeyPress={handleKeyPress}
-            />
-          </div>
-        </CardContent>
-        <CardActions>
-          <Button
-            variant="contained"
-            size="large"
-            color="secondary"
-            className={classes.loginBtn}
-            onClick={handleLogin}
-            disabled={state.isButtonDisabled}>
-            Login
-          </Button>
-        </CardActions>
-      </Card>
-    </form>
+    <LoginForm
+      state={state}
+      onUsernameChange={handleUsernameChange}
+      onPasswordChange={handlePasswordChange}
+      onKeyPress={handleKeyPress}
+      onLogin={handleLogin}
+      title="Bank Login App - Pixel"
+      buttonText="Login with Pixel"
+    />
   );
 }
 console.log(module);
