@@ -4,9 +4,15 @@ declare global {
 }
 
 export async function startStep(input: any, flow: string, backendUrl: string) {
-    var response;
-    
-    response = await fetch(backendUrl+'/start?deviceIp='+input.deviceDescriptor.ip
+    var ip
+
+    if (input.providedDeviceDescriptor) {
+        ip = input.providedDeviceDescriptor.ip
+    } else {
+        ip = input.deviceDescriptor.ip
+    }
+
+    var response = await fetch(backendUrl+'/start?deviceIp=' + ip
     +'&configurationName='+globalThis.config
     +'&flow=' + flow);
 
@@ -23,6 +29,7 @@ export async function startStep(input: any, flow: string, backendUrl: string) {
     }
     
     globalThis.startRequestId = json.requestId;
+
     return json.redirectTargetUrl 
 }
 

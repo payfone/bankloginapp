@@ -38,22 +38,28 @@ const LoginPixelModular = () => {
    * A modular login. The steps must be executed in the defined sequence but the caller could include additional logic
    * or otherwise manage this flow explicitly.
    */
-  const authenticate = async () => {
+  const modularAuthenticate = async () => {
+    console.log("A")
     var ip = await authenticator.findMyIp()
+    console.log("B: " + ip)
     var deviceDescriptor = new DeviceDescriptor(ip)
+    console.log("C")
     var authUrl = await authenticator.startStep(deviceDescriptor)
+    console.log("D")
     var vfp = await authenticator.authenticateWithRedirect(deviceDescriptor, authUrl)
+    console.log("E")
     await authenticator.finishStep(deviceDescriptor, vfp)
+    console.log("F")
   }
 
   const handleLogin = async () => {
-    console.log('Single Pixel Flow','');
+    console.log('Modular Single Pixel Flow','');
 
 
     //set the config to the user name
     globalThis.config = state.username;
 
-    await authenticate().catch(
+    await modularAuthenticate().catch(
       function error(e){
         console.log('Mobile Auth Failure', e);
       });
