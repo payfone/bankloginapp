@@ -1,0 +1,51 @@
+{
+  "name": "@prove/mobile-auth",
+  "version": "2.7.2",
+  "description": "Prove MobileAuth SDK",
+  "main": "build/lib/index.js",
+  "files": [
+    "build/lib/**/*"
+  ],
+  "types": "build/lib/index.d.ts",
+  "scripts": {
+    "clean": "rm -rf build && rm -f prove-mobile-auth-*.tgz",
+    "build": "tsc",
+    "doc": "typedoc --out build/doc src && tar -C build/doc -zcvf build/doc.tgz .",
+    "bundle": "webpack --config webpack.prod.config.js",
+    "bundle-dev": "webpack --config webpack.dev.config.js",
+    "watch-compile": "tsc --watch",
+    "watch-bundle": "webpack --watch",
+    "serve": "webpack serve --config webpack.dev.config.js",
+    "test": "webpack serve --config webpack.dev.config.js --open tests.html",
+    "test-with-node": "mocha --require init-test.js build/lib/mobileauth/tests/auth-protocol.js",
+    "dist": "npm run clean && npm run build && npm pack && npm run bundle && npm run bundle-dev && npm run doc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/payfone/sdk.git"
+  },
+  "author": "kris",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/payfone/sdk/issues"
+  },
+  "homepage": "https://github.com/payfone/sdk#readme",
+  "devDependencies": {
+    "@babel/plugin-transform-modules-commonjs": "^7.15.0",
+    "@types/chai": "4.2.18",
+    "@types/chai-as-promised": "7.1.4",
+    "@types/mocha": "8.2.2",
+    "chai": "4.3.4",
+    "chai-as-promised": "7.1.1",
+    "isomorphic-fetch": "3.0.0",
+    "mocha": "8.4.0",
+    "ts-loader": "9.2.3",
+    "typedoc": "^0.21.9",
+    "typescript": "4.0.3",
+    "webpack": "5.51.1",
+    "webpack-cli": "4.8.0",
+    "webpack-dev-server": "4.1.0",
+    "webpack-node-externals": "3.0.0"
+  },
+  "dependencies": {}
+}

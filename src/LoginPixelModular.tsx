@@ -1,9 +1,9 @@
 import { useReducer } from 'react';
-import {startStep, finishStep} from "./CustomSteps"
-import { FinishType, reducer, initialState } from './Base';
-import { AuthenticatorBuilder } from 'prove-mobile-auth';
-import LoginForm from './LoginForm';
+import {AuthenticatorBuilder, DeviceDescriptor} from 'prove-mobile-auth';
+import { FinishType, useStyles, reducer, initialState } from './Base';
+import  {startStep, finishStep } from './CustomSteps'
 import { useLoginFormHandlers } from './useLoginFormHandlers';
+import LoginForm from './LoginForm';
 import { getBackendUrl, getFlowPath } from './backendUtils'
 
 var backendUrl = ""
@@ -14,7 +14,7 @@ const authenticator = new AuthenticatorBuilder()
     .withDeviceIpDetection()
     .withStartStep({
       execute : async (input: any)=>{
-        return { authUrl : await startStep(input, flowPath, backendUrl)}
+       return { authUrl : await startStep(input, flowPath, backendUrl)}
       }
     })
     .withFinishStep({
@@ -24,30 +24,50 @@ const authenticator = new AuthenticatorBuilder()
     })
     .build();
 
-const LoginPixel = () => {
+
+const LoginPixelModular = () => {
+  const classes = useStyles();
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const params = new URLSearchParams(window.location.search)
   const env = params.get('env')
   backendUrl = getBackendUrl(env)
   flowPath = getFlowPath(env)
+   
+  /**
+   * A modular login. The steps must be executed in the defined sequence but the caller could include additional logic
+   * or otherwise manage this flow explicitly.
+   */
+  const modularAuthenticate = async () => {
+    console.log("A")
+    var ip = await authenticator.findMyIp()
+    console.log("B: " + ip)
+    var deviceDescriptor = new DeviceDescriptor(ip)
+    console.log("C")
+    var authUrl = await authenticator.startStep(deviceDescriptor)
+    console.log("D")
+    var vfp = await authenticator.authenticateWithRedirect(deviceDescriptor, authUrl)
+    console.log("E")
+    await authenticator.finishStep(deviceDescriptor, vfp)
+    console.log("F")
+  }
 
   const handleLogin = async () => {
-    console.log('Single Pixel Flow','');
+    console.log('Modular Single Pixel Flow','');
+
 
     //set the config to the user name
     globalThis.config = state.username;
 
-    //start the authentication
-    var finishWithPixelRsp = await authenticator.authenticate().catch(
-          function error(e){
-            console.log('Mobile Auth Failure', e);
-          });
+    await modularAuthenticate().catch(
+      function error(e){
+        console.log('Mobile Auth Failure', e);
+      });
 
     // "pixel" implementation does not return result to the client.
-    // we need to fetch it from the server, and server must expose it somehow  
-    // our demo server stores the result in a database under requestId key.        
-    const finishFullRsp = await fetch(backendUrl+'/result_with_pixel?requestId='+ globalThis.startRequestId);
+    // We need to fetch it from the server and server must expose it.
+    // Our demo server stores the result in a database under requestId key.        
+    const finishFullRsp = await fetch(backendUrl + '/result_with_pixel?requestId='+ globalThis.startRequestId);
     var result = '';
     if (finishFullRsp.status !== 200) {
         throw new Error('Cannot get results for pixel auth ('+finishFullRsp.status+')');
@@ -59,7 +79,7 @@ const LoginPixel = () => {
     //process the response
     let finish = result as unknown as FinishType;
     console.log('Finish', finish);
-    if(finish != undefined){
+    if(finish !== undefined){
       var mobileNumber = finish.phoneInfo.mobileNumber;
       console.log('Mobile Auth Success ' + mobileNumber);
       state.isError = false;
@@ -97,4 +117,4 @@ const LoginPixel = () => {
   );
 }
 console.log(module);
-export default LoginPixel;
+export default LoginPixelModular;
