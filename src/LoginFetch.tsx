@@ -78,6 +78,7 @@ const LoginFetch = () => {
       onLogin={handleLogin}
       title="Bank Login App - Fetch"
       buttonText="Login with Fetch"
+      enablePhoneNumber={false}
     />
   );
 }

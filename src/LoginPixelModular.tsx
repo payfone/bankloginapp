@@ -1,4 +1,4 @@
-import { useReducer } from 'react';
+import { useReducer, useState } from 'react';
 import {AuthenticatorBuilder, DeviceDescriptor} from 'prove-mobile-auth';
 import { FinishType, useStyles, reducer, initialState } from './Base';
 import  {startStep, finishStep } from './CustomSteps'
@@ -28,6 +28,7 @@ const authenticator = new AuthenticatorBuilder()
 const LoginPixelModular = () => {
   const classes = useStyles();
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [phoneNumber, setPhoneNumber] = useState('');
 
   const params = new URLSearchParams(window.location.search)
   const env = params.get('env')
@@ -42,7 +43,7 @@ const LoginPixelModular = () => {
     console.log("A")
     var ip = await authenticator.findMyIp()
     console.log("B: " + ip)
-    var deviceDescriptor = new DeviceDescriptor(ip)
+    var deviceDescriptor = new DeviceDescriptor(ip, undefined, globalThis.phoneNumber)
     console.log("C")
     var authUrl = await authenticator.startStep(deviceDescriptor)
     console.log("D")
@@ -58,6 +59,7 @@ const LoginPixelModular = () => {
 
     //set the config to the user name
     globalThis.config = state.username;
+    globalThis.phoneNumber = phoneNumber.trim() || undefined;
 
     await modularAuthenticate().catch(
       function error(e){
@@ -113,6 +115,9 @@ const LoginPixelModular = () => {
       onLogin={handleLogin}
       title="Bank Login App - Pixel"
       buttonText="Login with Pixel"
+      enablePhoneNumber={true}
+      phoneNumber={phoneNumber}
+      onPhoneNumberChange={(event) => setPhoneNumber(event.target.value)}
     />
   );
 }

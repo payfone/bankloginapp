@@ -1,4 +1,4 @@
-import { useReducer } from 'react';
+import { useReducer, useState } from 'react';
 import {startStep, finishStep} from "./CustomSteps"
 import { FinishType, reducer, initialState } from './Base';
 import { AuthenticatorBuilder } from 'prove-mobile-auth';
@@ -26,6 +26,7 @@ const authenticator = new AuthenticatorBuilder()
 
 const LoginPixel = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [phoneNumber, setPhoneNumber] = useState('');
 
   const params = new URLSearchParams(window.location.search)
   const env = params.get('env')
@@ -37,12 +38,14 @@ const LoginPixel = () => {
 
     //set the config to the user name
     globalThis.config = state.username;
+    globalThis.phoneNumber = phoneNumber.trim() || undefined;
 
     //start the authentication
-    var finishWithPixelRsp = await authenticator.authenticate().catch(
-          function error(e){
-            console.log('Mobile Auth Failure', e);
-          });
+    await authenticator.authenticate().catch(
+      function error(e: any) {
+        console.log('Mobile Auth Failure', e);
+      }
+    );
 
     // "pixel" implementation does not return result to the client.
     // we need to fetch it from the server, and server must expose it somehow  
@@ -93,6 +96,9 @@ const LoginPixel = () => {
       onLogin={handleLogin}
       title="Bank Login App - Pixel"
       buttonText="Login with Pixel"
+      enablePhoneNumber={true}
+      phoneNumber={phoneNumber}
+      onPhoneNumberChange={(event) => setPhoneNumber(event.target.value)}
     />
   );
 }
