@@ -73,7 +73,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 fullWidth
                 id="phoneNumber"
                 type="tel"
-                label="Phone Number (optional)"
+                label="Phone Number (international only)"
                 placeholder=""
                 margin="normal"
                 value={phoneNumber}

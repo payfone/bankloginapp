@@ -89,10 +89,9 @@ const LoginPixelCallbackConversion = () => {
     let finish = result as unknown as FinishType;
     console.log('Finish', finish);
     if(finish != undefined){
-      var mobileNumber = finish.phoneInfo.mobileNumber;
-      console.log('Mobile Auth Success ' + mobileNumber);
+      console.log('Mobile Auth Success');
       state.isError = false;
-      let payloadString =  'Successful Login with Mobile Number ' + mobileNumber;
+      let payloadString =  'Successful Login';
 
       dispatch({
         type: 'loginSuccess',
