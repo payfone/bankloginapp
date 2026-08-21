@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import LoginFetch from './LoginFetch';
 import LoginPixel from './LoginPixel';
 import LoginPixelModular from './LoginPixelModular';
+import LoginPixelCallbackConversion from './LoginPixelCallbackConversion';
 
 function App() {
   return (
@@ -39,6 +40,12 @@ function App() {
             <LoginPixelModular/>
           </Route>       
 
+          /*
+            Pixel flow authentication split to take in the response of the first authentication flow and convert the production callback to a local callback to continue working locally.
+          */
+          <Route path="/pixel-callback-conversion">
+            <LoginPixelCallbackConversion/>
+          </Route>
           /*
             Default to the fetch implementation
           */   

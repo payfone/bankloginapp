@@ -1,6 +1,7 @@
 declare global {
   var config: string;
   var startRequestId: string;
+  var phoneNumber: string | undefined;
 }
 
 export async function startStep(input: any, flow: string, backendUrl: string) {
@@ -12,9 +13,19 @@ export async function startStep(input: any, flow: string, backendUrl: string) {
         ip = input.deviceDescriptor.ip
     }
 
-    var response = await fetch(backendUrl+'/start?deviceIp=' + ip
-    +'&configurationName='+globalThis.config
-    +'&flow=' + flow);
+    const phoneNumber =
+        input.providedDeviceDescriptor?.phoneNumber
+        || input.deviceDescriptor?.phoneNumber
+        || globalThis.phoneNumber
+
+    var startUrl = backendUrl+'/start?deviceIp=' + ip
+        +'&configurationName='+globalThis.config
+        +'&flow=' + flow;
+    if (phoneNumber) {
+        startUrl += '&phoneNumber=' + encodeURIComponent(phoneNumber);
+    }
+
+    var response = await fetch(startUrl);
 
     var json;
     
