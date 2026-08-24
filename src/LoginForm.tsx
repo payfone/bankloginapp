@@ -16,6 +16,9 @@ interface LoginFormProps {
   onLogin: () => void;
   title?: string;
   buttonText?: string;
+  enablePhoneNumber?: boolean;
+  phoneNumber?: string;
+  onPhoneNumberChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 /**
@@ -29,7 +32,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
   onKeyPress,
   onLogin,
   title = "Bank Login App",
-  buttonText = "Login"
+  buttonText = "Login",
+  enablePhoneNumber = false,
+  phoneNumber = '',
+  onPhoneNumberChange,
 }) => {
   const classes = useStyles();
 
@@ -62,6 +68,19 @@ const LoginForm: React.FC<LoginFormProps> = ({
               onChange={onPasswordChange}
               onKeyPress={onKeyPress}
             />
+            {enablePhoneNumber && (
+              <TextField
+                fullWidth
+                id="phoneNumber"
+                type="tel"
+                label="Phone Number (international only)"
+                placeholder=""
+                margin="normal"
+                value={phoneNumber}
+                onChange={onPhoneNumberChange}
+                onKeyPress={onKeyPress}
+              />
+            )}
           </div>
         </CardContent>
         <CardActions>
