@@ -1,4 +1,4 @@
-import { useReducer } from 'react';
+import { useReducer, useState } from 'react';
 import {startStep, finishStep} from "./CustomSteps"
 import { FinishType, reducer, initialState } from './Base';
 import { AuthenticatorBuilder } from 'prove-mobile-auth';
@@ -26,6 +26,7 @@ const authenticator = new AuthenticatorBuilder()
 
 const LoginPixel = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [phoneNumber, setPhoneNumber] = useState('');
 
   const params = new URLSearchParams(window.location.search)
   const env = params.get('env')
@@ -37,12 +38,15 @@ const LoginPixel = () => {
 
     //set the config to the user name
     globalThis.config = state.username;
+    globalThis.bearerToken = state.password.trim() || undefined;
+    globalThis.phoneNumber = phoneNumber.trim() || undefined;
 
     //start the authentication
-    var finishWithPixelRsp = await authenticator.authenticate().catch(
-          function error(e){
-            console.log('Mobile Auth Failure', e);
-          });
+    await authenticator.authenticate().catch(
+      function error(e: any) {
+        console.log('Mobile Auth Failure', e);
+      }
+    );
 
     // "pixel" implementation does not return result to the client.
     // we need to fetch it from the server, and server must expose it somehow  
@@ -59,11 +63,23 @@ const LoginPixel = () => {
     //process the response
     let finish = result as unknown as FinishType;
     console.log('Finish', finish);
-    if(finish != undefined){
-      var mobileNumber = finish.phoneInfo.mobileNumber;
-      console.log('Mobile Auth Success ' + mobileNumber);
+    if(finish !== undefined){
+      const mobileNumber = finish.phoneInfo.mobileNumber;
+      const authenticated = finish.phoneInfo.authenticated;
+      let payloadString = '';
+
+      if (mobileNumber) { // US successful login
+        console.log('Mobile Auth Success, returned phone number: ' + mobileNumber);
+        payloadString = 'Successful Login with Mobile Number ' + mobileNumber;
+      } else if (authenticated !== undefined) { // International successful login
+        console.log('Authentication Result: ' + authenticated);
+        payloadString = authenticated ? 'Successful Authentication' : 'Flow completed with authentication false';
+      } else {
+        console.log('Authentication Failed, missing phone number or authenticated result');
+        payloadString = 'Missing phone number or authenticated result';
+      }
+
       state.isError = false;
-      let payloadString =  'Successful Login with Mobile Number ' + mobileNumber;
 
       dispatch({
         type: 'loginSuccess',
@@ -93,6 +109,9 @@ const LoginPixel = () => {
       onLogin={handleLogin}
       title="Bank Login App - Pixel"
       buttonText="Login with Pixel"
+      enablePhoneNumber={true}
+      phoneNumber={phoneNumber}
+      onPhoneNumberChange={(event) => setPhoneNumber(event.target.value)}
     />
   );
 }

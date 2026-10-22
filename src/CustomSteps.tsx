@@ -1,6 +1,14 @@
 declare global {
   var config: string;
   var startRequestId: string;
+  var phoneNumber: string | undefined;
+  var bearerToken: string | undefined;
+}
+
+export function authHeaders(): HeadersInit | undefined {
+    const token = typeof globalThis.bearerToken === 'string' ? globalThis.bearerToken.trim() : '';
+    if (!token) return undefined;
+    return { Authorization: `Bearer ${token}` };
 }
 
 export async function startStep(input: any, flow: string, backendUrl: string) {
@@ -12,9 +20,20 @@ export async function startStep(input: any, flow: string, backendUrl: string) {
         ip = input.deviceDescriptor.ip
     }
 
-    var response = await fetch(backendUrl+'/start?deviceIp=' + ip
-    +'&configurationName='+globalThis.config
-    +'&flow=' + flow);
+    const phoneNumber =
+        input.providedDeviceDescriptor?.phoneNumber
+        || input.deviceDescriptor?.phoneNumber
+        || globalThis.phoneNumber
+
+    var startUrl = backendUrl+'/start?deviceIp=' + ip
+        +'&configurationName='+globalThis.config
+        +'&flow=' + flow;
+    if (phoneNumber) {
+        startUrl += '&phoneNumber=' + encodeURIComponent(phoneNumber);
+    }
+
+    const headers = authHeaders();
+    var response = await fetch(startUrl, headers ? { headers } : undefined);
 
     var json;
     
@@ -35,7 +54,11 @@ export async function startStep(input: any, flow: string, backendUrl: string) {
 
 
 export async function finishStep(input: any, backendUrl: string) {
-    const response = await fetch(backendUrl+'/finish?vfp='+input.vfp+'&configurationName='+globalThis.config);
+    const headers = authHeaders();
+    const response = await fetch(
+        backendUrl+'/finish?vfp='+input.vfp+'&configurationName='+globalThis.config,
+        headers ? { headers } : undefined
+    );
     var json;
     
     try {

@@ -1,6 +1,8 @@
+const DEFAULT_GTA_URL = 'https://gta.dev.prove-auth.proveapis.com/mobile_auth/v1';
+
 const ENV_TO_URL: Record<string, string> = {
     cloud: 'https://us-central1-prove-testapp.cloudfunctions.net/api/mobile_auth/v1',
-    gta: 'https://gta.dev.prove-auth.proveapis.com/mobile_auth/v1',
+    gta: process.env.REACT_APP_GTA_BACKEND_URL || DEFAULT_GTA_URL,
 }
 
 export function getBackendUrl(env: string | null): string {

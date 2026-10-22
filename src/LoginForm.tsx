@@ -16,6 +16,9 @@ interface LoginFormProps {
   onLogin: () => void;
   title?: string;
   buttonText?: string;
+  enablePhoneNumber?: boolean;
+  phoneNumber?: string;
+  onPhoneNumberChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 /**
@@ -29,7 +32,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
   onKeyPress,
   onLogin,
   title = "Bank Login App",
-  buttonText = "Login"
+  buttonText = "Login",
+  enablePhoneNumber = false,
+  phoneNumber = '',
+  onPhoneNumberChange,
 }) => {
   const classes = useStyles();
 
@@ -58,13 +64,25 @@ const LoginForm: React.FC<LoginFormProps> = ({
               label="Password"
               placeholder="Password"
               margin="normal"
-              helperText={state.helperText}
               onChange={onPasswordChange}
               onKeyPress={onKeyPress}
             />
+            {enablePhoneNumber && (
+              <TextField
+                fullWidth
+                id="phoneNumber"
+                type="tel"
+                label="Phone Number (international only)"
+                placeholder=""
+                margin="normal"
+                value={phoneNumber}
+                onChange={onPhoneNumberChange}
+                onKeyPress={onKeyPress}
+              />
+            )}
           </div>
         </CardContent>
-        <CardActions>
+        <CardActions style={{ flexDirection: 'column', alignItems: 'stretch' }}>
           <Button
             variant="contained"
             size="large"
@@ -75,6 +93,15 @@ const LoginForm: React.FC<LoginFormProps> = ({
           >
             {buttonText}
           </Button>
+          {state.helperText && (
+            <div
+              className={`${classes.helperMessage} ${
+                state.isError ? classes.helperMessageError : classes.helperMessageSuccess
+              }`}
+            >
+              {state.helperText}
+            </div>
+          )}
         </CardActions>
       </Card>
     </form>
