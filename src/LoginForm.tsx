@@ -64,7 +64,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
               label="Password"
               placeholder="Password"
               margin="normal"
-              helperText={state.helperText}
               onChange={onPasswordChange}
               onKeyPress={onKeyPress}
             />
@@ -83,7 +82,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             )}
           </div>
         </CardContent>
-        <CardActions>
+        <CardActions style={{ flexDirection: 'column', alignItems: 'stretch' }}>
           <Button
             variant="contained"
             size="large"
@@ -94,6 +93,15 @@ const LoginForm: React.FC<LoginFormProps> = ({
           >
             {buttonText}
           </Button>
+          {state.helperText && (
+            <div
+              className={`${classes.helperMessage} ${
+                state.isError ? classes.helperMessageError : classes.helperMessageSuccess
+              }`}
+            >
+              {state.helperText}
+            </div>
+          )}
         </CardActions>
       </Card>
     </form>

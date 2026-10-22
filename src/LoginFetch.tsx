@@ -1,4 +1,4 @@
-import { useReducer, useMemo } from 'react';
+import { useReducer, useState } from 'react';
 import {AuthenticatorBuilder} from 'prove-mobile-auth';
 import {startStep, finishStep} from './CustomSteps'
 import LoginForm from './LoginForm';
@@ -26,6 +26,7 @@ const authenticator = new AuthenticatorBuilder()
 
 const LoginFetch = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [phoneNumber, setPhoneNumber] = useState('');
 
   const params = new URLSearchParams(window.location.search)
   const env = params.get('env')
@@ -36,6 +37,8 @@ const LoginFetch = () => {
 
     //set the config to the user name
     globalThis.config = state.username;
+    globalThis.bearerToken = state.password.trim() || undefined;
+    globalThis.phoneNumber = phoneNumber.trim() || undefined;
 
     //start the authentication
     var finishRsp = await authenticator.authenticate().catch(
@@ -45,11 +48,23 @@ const LoginFetch = () => {
 
     //process the response
     let finish = finishRsp as unknown as FinishPhoneType;
-    if(finish != undefined){
-      var mobileNumber = finish.mobileNumber;
-      console.log('Mobile Auth Success ' + mobileNumber);
+    if(finish !== undefined){
+      const mobileNumber = finish.mobileNumber;
+      const authenticated = finish.authenticated;
+      let payloadString = '';
+
+      if (mobileNumber) { // US successful login
+        console.log('Mobile Auth Success, returned phone number: ' + mobileNumber);
+        payloadString = 'Successful Login with Mobile Number ' + mobileNumber;
+      } else if (authenticated !== undefined) { // International successful login
+        console.log('Authentication Result: ' + authenticated);
+        payloadString = authenticated ? 'Successful Authentication' : 'Flow completed with authentication false';
+      } else {
+        console.log('Authentication Failed, missing phone number or authenticated result');
+        payloadString = 'Missing phone number or authenticated result';
+      }
+
       state.isError = false;
-      let payloadString =  'Successful Login with Mobile Number ' + mobileNumber;
 
       dispatch({
         type: 'loginSuccess',
@@ -78,7 +93,9 @@ const LoginFetch = () => {
       onLogin={handleLogin}
       title="Bank Login App - Fetch"
       buttonText="Login with Fetch"
-      enablePhoneNumber={false}
+      enablePhoneNumber={true}
+      phoneNumber={phoneNumber}
+      onPhoneNumberChange={(event) => setPhoneNumber(event.target.value)}
     />
   );
 }

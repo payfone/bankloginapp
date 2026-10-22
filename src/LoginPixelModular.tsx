@@ -1,6 +1,6 @@
 import { useReducer, useState } from 'react';
 import {AuthenticatorBuilder, DeviceDescriptor} from 'prove-mobile-auth';
-import { FinishType, useStyles, reducer, initialState } from './Base';
+import { FinishType, reducer, initialState } from './Base';
 import  {startStep, finishStep } from './CustomSteps'
 import { useLoginFormHandlers } from './useLoginFormHandlers';
 import LoginForm from './LoginForm';
@@ -26,7 +26,6 @@ const authenticator = new AuthenticatorBuilder()
 
 
 const LoginPixelModular = () => {
-  const classes = useStyles();
   const [state, dispatch] = useReducer(reducer, initialState);
   const [phoneNumber, setPhoneNumber] = useState('');
 
@@ -59,6 +58,7 @@ const LoginPixelModular = () => {
 
     //set the config to the user name
     globalThis.config = state.username;
+    globalThis.bearerToken = state.password.trim() || undefined;
     globalThis.phoneNumber = phoneNumber.trim() || undefined;
 
     await modularAuthenticate().catch(
@@ -82,10 +82,23 @@ const LoginPixelModular = () => {
     let finish = result as unknown as FinishType;
     console.log('Finish', finish);
     if(finish !== undefined){
-      var mobileNumber = finish.phoneInfo.mobileNumber;
-      console.log('Mobile Auth Success ' + mobileNumber);
+
+      const mobileNumber = finish.phoneInfo.mobileNumber;
+      const authenticated = finish.phoneInfo.authenticated;
+      let payloadString = '';
+
+      if (mobileNumber) { // US successful login
+        console.log('Mobile Auth Success, returned phone number: ' + mobileNumber);
+        payloadString = 'Successful Login with Mobile Number ' + mobileNumber;
+      } else if (authenticated !== undefined) { // International successful login
+        console.log('Authentication Result: ' + authenticated);
+        payloadString = authenticated ? 'Successful Authentication' : 'Flow completed with authentication false';
+      } else {
+        console.log('Authentication Failed, missing phone number or authenticated result');
+        payloadString = 'Missing phone number or authenticated result';
+      }
+
       state.isError = false;
-      let payloadString =  'Successful Login with Mobile Number ' + mobileNumber;
 
       dispatch({
         type: 'loginSuccess',

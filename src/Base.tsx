@@ -12,7 +12,8 @@ export type FinishPhoneType = {
   mobileNumber: string, 
   mobileOperatorName: string,
   mobileCountryCode: string,
-  payfoneAlias: string 
+  payfoneAlias: string
+  authenticated: boolean
 };
 
 export type State = {
@@ -43,6 +44,20 @@ export const useStyles = makeStyles((theme: Theme) =>
     loginBtn: {
       marginTop: theme.spacing(2),
       flexGrow: 1
+    },
+    helperMessage: {
+      width: '100%',
+      marginTop: theme.spacing(1),
+      paddingLeft: theme.spacing(1),
+      paddingRight: theme.spacing(1),
+      fontSize: '0.75rem',
+      textAlign: 'center',
+    },
+    helperMessageError: {
+      color: theme.palette.error.main,
+    },
+    helperMessageSuccess: {
+      color: theme.palette.text.secondary,
     },
     header: {
       textAlign: 'center',

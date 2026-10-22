@@ -41,6 +41,7 @@ const LoginPixelCallbackConversion = () => {
 
     //set the config to the user name
     globalThis.config = state.username;
+    globalThis.bearerToken = state.password.trim() || undefined;
     globalThis.phoneNumber = phoneNumber.trim() || undefined;
 
     //start the authentication
@@ -88,7 +89,7 @@ const LoginPixelCallbackConversion = () => {
     //process the response
     let finish = result as unknown as FinishType;
     console.log('Finish', finish);
-    if(finish != undefined){
+    if(finish !== undefined){
       console.log('Mobile Auth Success');
       state.isError = false;
       let payloadString =  'Successful Login';

@@ -59,55 +59,19 @@ const useConversionStyles = makeStyles((theme: Theme) =>
       maxWidth: '100%',
       imageRendering: 'pixelated',
     },
-    urlEmpty: {
+    urlField: {
+      '--url-field-color': URL_FIELD_COLORS.empty,
       '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-        borderColor: URL_FIELD_COLORS.empty,
+        borderColor: 'var(--url-field-color)',
       },
       '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-        borderColor: URL_FIELD_COLORS.empty,
+        borderColor: 'var(--url-field-color)',
       },
       '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-        borderColor: URL_FIELD_COLORS.empty,
+        borderColor: 'var(--url-field-color)',
       },
-      '& .MuiInputLabel-root': {
-        color: URL_FIELD_COLORS.empty,
-      },
-      '& .MuiFormHelperText-root': {
-        color: URL_FIELD_COLORS.empty,
-      },
-    },
-    urlValid: {
-      '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-        borderColor: URL_FIELD_COLORS.valid,
-      },
-      '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-        borderColor: URL_FIELD_COLORS.valid,
-      },
-      '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-        borderColor: URL_FIELD_COLORS.valid,
-      },
-      '& .MuiInputLabel-root': {
-        color: URL_FIELD_COLORS.valid,
-      },
-      '& .MuiFormHelperText-root': {
-        color: URL_FIELD_COLORS.valid,
-      },
-    },
-    urlInvalid: {
-      '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-        borderColor: URL_FIELD_COLORS.invalid,
-      },
-      '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
-        borderColor: URL_FIELD_COLORS.invalid,
-      },
-      '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-        borderColor: URL_FIELD_COLORS.invalid,
-      },
-      '& .MuiInputLabel-root': {
-        color: URL_FIELD_COLORS.invalid,
-      },
-      '& .MuiFormHelperText-root': {
-        color: URL_FIELD_COLORS.invalid,
+      '& .MuiInputLabel-root, & .MuiFormHelperText-root': {
+        color: 'var(--url-field-color)',
       },
     },
   })
@@ -155,11 +119,6 @@ const LoginConversionForm: React.FC<LoginConversionFormProps> = ({
   const classes = useStyles();
   const conversionClasses = useConversionStyles();
   const urlStatus = getUrlValidationStatus(callbackUrl);
-  const urlStatusClass = {
-    empty: conversionClasses.urlEmpty,
-    valid: conversionClasses.urlValid,
-    invalid: conversionClasses.urlInvalid,
-  }[urlStatus];
 
   return (
     <form className={classes.container} noValidate autoComplete="off">
@@ -223,8 +182,12 @@ const LoginConversionForm: React.FC<LoginConversionFormProps> = ({
               value={callbackUrl}
               onChange={onCallbackUrlChange}
               helperText={URL_FIELD_HELPER[urlStatus]}
-              className={urlStatusClass}
-              error={urlStatus === 'invalid'}
+              className={conversionClasses.urlField}
+              style={
+                {
+                  '--url-field-color': URL_FIELD_COLORS[urlStatus],
+                } as React.CSSProperties
+              }
             />
             <Button
               variant="contained"
